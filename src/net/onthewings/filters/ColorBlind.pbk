@@ -1,0 +1,39 @@
+<languageVersion : 1.0;>
+
+kernel ColorBlind
+<   namespace : "net.onthewings.filters";
+    vendor : "Andy Li";
+    version : 1;
+    description : "Color-Blind simulation. Algorithm extracted from http://homepage.mac.com/lpetrich/ColorBlindnessSim/ColorBlindnessSim.html";
+>
+{   
+    /*
+        0: Protanopia/No Red
+        1: Deuteranopia/No Green
+        2: Tritanopia/No Blue
+        3: What a Dog Sees
+    */
+    #define CBTYPE 0
+    
+    input image4 src;
+    output pixel4 dst;
+    
+    #if CBTYPE == 0
+    const float4x4 TransformMatrix = float4x4(0.202001295331, 0.991720719265, -0.193722014597, 0, 0.163800203026, 0.792663865514, 0.0435359314602, 0, 0.00913336570448, -0.0132684300993, 1.00413506439, 0, 0, 0, 0, 1);
+    #endif
+    #if CBTYPE == 1
+    const float4x4 TransformMatrix = float4x4(0.430749076295, 0.717402505462, -0.148151581757, 0, 0.336582831043, 0.574447762213, 0.0889694067435, 0, -0.0236572929497, 0.0275635332006, 0.996093759749, 0, 0, 0, 0, 1);
+    #endif
+    #if CBTYPE == 2
+    const float4x4 TransformMatrix = float4x4(0.971710712275, 0.112392320487, -0.0841030327623, 0, 0.0219508442818, 0.817739672383, 0.160309483335, 0, -0.0628595877201, 0.880724870686, 0.182134717034, 0, 0, 0, 0, 1);
+    #endif
+    #if CBTYPE == 3
+    const float4x4 TransformMatrix = float4x4(0.316086131719, 0.854894118151, -0.170980249869, 0, 0.250572926562, 0.683189199376, 0.0662378740621, 0, -0.00735450321111, 0.00718184676374, 1.00017265645, 0, 0, 0, 0, 1);
+    #endif
+    
+    void
+    evaluatePixel()
+    {   
+        dst = sampleNearest(src,outCoord()) * TransformMatrix;
+    }
+}

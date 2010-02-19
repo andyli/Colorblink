@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
-	
+<mx:WindowedApplication 
+	xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+	initialize="init();" showStatusBar="false">
+	<mx:Script source="colorblink_main.as" />
+	<mx:VBox id="infoBox" width="420" horizontalCenter="0" verticalCenter="0">
+		<mx:Text width="100%" text="Drop swf or image file here." 
+			color="#000000" fontSize="24" selectable="false" />
+		<mx:Text width="100%" text="Then select color blind type from the 'simulate' menu." 
+			color="#000000" fontSize="14" selectable="false" />
+		<mx:Spacer height="20" />
+		<mx:Text width="100%" text="Colorblink is an AIR app that simulates how color blind people see Flash and images." 
+			color="#666666" fontSize="14" selectable="false" />
+		<mx:HBox width="100%" horizontalGap="0" verticalAlign="middle">
+			<mx:Text text="Source can be found in" 
+				color="#666666" fontSize="14" selectable="false" />
+			<mx:LinkButton id="sourceBtn" label="{SOURCE_URL}" color="#666666" click="navigateToURL(new URLRequest(SOURCE_URL));" />
+		</mx:HBox>
+	</mx:VBox>
 </mx:WindowedApplication>

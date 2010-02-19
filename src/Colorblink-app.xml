@@ -28,7 +28,7 @@
 
 	<!-- Description, displayed in the AIR application installer.
 	     May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<!-- <description></description> -->
+	<description>Colorblink is an AIR app that simulates how color blind people see Flash and images.</description>
 
 	<!-- Copyright information. Optional -->
 	<!-- <copyright></copyright> -->
