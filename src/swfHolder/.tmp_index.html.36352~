@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title></title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+		<script type="text/javascript" src="swfobject.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				var url = window.location.href;
+				var swfUrl = unescape(url.substring(url.indexOf('?')+1));
+				swfUrl = "indexBannerMC.swf";
+				
+				swfobject.embedSWF(swfUrl, "swfDiv", "100%", "100%", "10.0.0", false, {}, {}, {});
+			});
+		</script>
+		<style type="text/css">
+			html, body {
+				padding:0;
+				margin:0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="swfDiv">
+		</div>
+	</body>
+</html>
