@@ -10,12 +10,15 @@ import flash.display.NativeWindow;
 import flash.events.Event;
 import flash.events.NativeDragEvent;
 import flash.filesystem.File;
+import flash.filesystem.FileMode;
+import flash.filesystem.FileStream;
 import flash.geom.Point;
 import flash.net.URLRequest;
 
 import mx.containers.Canvas;
 import mx.controls.Alert;
 import mx.events.ResizeEvent;
+import mx.graphics.codec.PNGEncoder;
 
 import net.onthewings.filters.ColorblindFilter;
 
@@ -59,11 +62,12 @@ private function init():void {
 	cbTypeMenu = new NativeMenu();
 	for each (var type:String in types) {
 		var menuItem:NativeMenuItem = new NativeMenuItem(type);
-		menuItem.addEventListener(Event.SELECT, onMenuSelect);
+		menuItem.addEventListener(Event.SELECT, onSimulateMenuSelect);
 		cbTypeMenu.addItem(menuItem);
 	}
 	menu.addSubmenu(cbTypeMenu, "simulate");
-
+	
+	//create resize window menu
 	var resizeMenu:NativeMenu = new NativeMenu();
 	for each (type in windowSizes) {
 		menuItem = new NativeMenuItem(type);
@@ -71,6 +75,16 @@ private function init():void {
 		resizeMenu.addItem(menuItem);
 	}
 	menu.addSubmenu(resizeMenu, "resize window");
+	
+	//create capture menu
+	var captureMenu:NativeMenu = new NativeMenu();
+	menuItem = new NativeMenuItem("to desktop");
+	menuItem.addEventListener(Event.SELECT, captureToDesktop);
+	captureMenu.addItem(menuItem);
+	menuItem = new NativeMenuItem("to same directory");
+	menuItem.addEventListener(Event.SELECT, captureToDirectory);
+	captureMenu.addItem(menuItem);
+	menu.addSubmenu(captureMenu, "capture");
 
 	cbTypeMenu.items[0].checked = true; //check the "Normal vision" one as default
 
@@ -131,7 +145,7 @@ private function onEnterFrame(evt:Event):void {
 	filterBD.unlock();
 }
 
-private function onMenuSelect(evt:Event):void {
+private function onSimulateMenuSelect(evt:Event):void {
 	var menuItem:NativeMenuItem;
 
 	//uncheck all meun items
@@ -166,7 +180,7 @@ private function onDropBoxDragEnter(evt:NativeDragEvent):void {
 		//get the first file, ignore the rest
 		var file:File = evt.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT)[0];
 
-		if (isAcceptableExt(file.extension, extList))
+		if (isExtensionInList(file.extension, extList))
 			NativeDragManager.acceptDragDrop(this);
 	}
 }
@@ -177,7 +191,7 @@ private function onDragEnter(evt:NativeDragEvent):void {
 		//get the first file, ignore the rest
 		var file:File = evt.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT)[0];
 
-		if (isAcceptableExt(file.extension, extList)) {
+		if (isExtensionInList(file.extension, extList)) {
 			dropBoxText.text = "Drop " + file.name + " here to open.";
 		} else {
 			dropBoxText.text = "Can't reconize" + file.name + "...";
@@ -199,7 +213,7 @@ private function onDrop(evt:NativeDragEvent):void {
 
 	//get the first file, ignore the rest
 	file = evt.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT)[0];
-	if (isAcceptableExt(file.extension, webpageExtList)) {
+	if (isExtensionInList(file.extension, webpageExtList)) { //if the dropped file is webpage
 		htmlHolder.location = file.url;
 		loader.visible = false;
 		htmlHolder.visible = true;
@@ -209,6 +223,9 @@ private function onDrop(evt:NativeDragEvent):void {
 	}
 }
 
+/**
+ * Resize the native window to the supplied size.
+ */
 private function resizeWindowTo(width:Number, height:Number, includeBorder:Boolean = true):void {
 	if (includeBorder) {
 		//resize the window according to the loaded content
@@ -226,19 +243,21 @@ private function resizeWindowTo(width:Number, height:Number, includeBorder:Boole
 private function onLoadComplete(evt:Event):void {
 	resizeWindowTo(loader.contentLoaderInfo.width, loader.contentLoaderInfo.height, false);
 
-	if (isAcceptableExt(file.extension, swfExtList)) {
+	if (isExtensionInList(file.extension, swfExtList)) {
 		loader.unloadAndStop();
 		htmlHolder.location = "/swfHolder/index.html?" + escape(file.url);
 		loader.visible = false;
 		htmlHolder.visible = true;
-	} else if (isAcceptableExt(file.extension, imgExtList)) {
+	} else if (isExtensionInList(file.extension, imgExtList)) {
 		loader.visible = true;
 		htmlHolder.visible = false;
 	}
 }
 
-//return if the extension is acceptable
-private function isAcceptableExt(ext:String, extList:String):Boolean {
+/**
+ * Check if the extension is inside the list.
+ */
+private function isExtensionInList(ext:String, extList:String):Boolean {
 	if (!ext || ext.length <= 0)
 		return false;
 
@@ -251,8 +270,39 @@ private function isAcceptableExt(ext:String, extList:String):Boolean {
 	return false;
 }
 
-private function onDomDragOver(e:*):void {
-	//e.preventDefault();
-	Alert.show("here");
-	NativeDragManager.acceptDragDrop(this);
+/**
+ * Capture the whole app and save to the supplied directory.
+ */
+private function captureTo(targetDir:File):void {
+	if (!file) return;
+	
+	if (!targetDir.isDirectory) return;
+	
+	var fileName:String = file.name;
+	if (!cbTypeMenu.items[0].checked) {
+		fileName += '.'+ cbFilter.type;
+	}
+	fileName += ".png";
+	
+	var bd:BitmapData = new BitmapData(this.width,this.height,false);
+	bd.draw(this);
+	
+	var fs:FileStream = new FileStream();
+	fs.open(targetDir.resolvePath(fileName), FileMode.WRITE);
+	fs.writeBytes(new PNGEncoder().encode(bd));
+	fs.close();
+}
+
+/**
+ * Capture the whole app and save to Desktop.
+ */
+private function captureToDesktop(evt:Event = null):void {
+	captureTo(File.desktopDirectory);
+}
+
+/**
+ * Capture the whole app and save to the same directory of the loaded file.
+ */
+private function captureToDirectory(evt:Event = null):void {
+	captureTo(new File(file.url).resolvePath('..'));
 }
